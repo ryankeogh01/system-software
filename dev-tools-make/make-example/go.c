@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include "primes.h"
 
+
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("error: must provide a single integer value to test\n");
