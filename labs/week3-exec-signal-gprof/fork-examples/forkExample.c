@@ -11,11 +11,13 @@ int main(int argc, char **argv)
 
     if (pid == 0)
     {
-	printf("\nHello from the child process!!\n\n\n");
+	    printf("\nHello from the child process!!\n\n\n");
+        sleep(10000);
     }
     else if (pid > 0)
     {
         printf("\nHello from the parent process!!\n\n\n");
+        sleep(10000);
     }
     else
     {
