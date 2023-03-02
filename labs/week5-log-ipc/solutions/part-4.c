@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 void exec1();
 void exec2();
@@ -65,7 +66,7 @@ void main() {
 void exec1() {
   // input from stdin (already done)
   // output to pipe1
-  dup2(pipe1[1], 1);
+  dup2(pipe1[1], STDOUT_FILENO);
   // close fds
   close(pipe1[0]);
   close(pipe1[1]);
@@ -78,9 +79,9 @@ void exec1() {
 
 void exec2() {
   // input from pipe1
-  dup2(pipe1[0], 0);
+  dup2(pipe1[0], STDIN_FILENO);
   // output to pipe2
-  dup2(pipe2[1], 1);
+  dup2(pipe2[1], STDOUT_FILENO);
   // close fds
   close(pipe1[0]);
   close(pipe1[1]);
@@ -95,7 +96,7 @@ void exec2() {
 
 void exec3() {
   // input from pipe2
-  dup2(pipe2[0], 0);
+  dup2(pipe2[0], STDIN_FILENO);
   // output to stdout (already done)
   // close fds
   close(pipe2[0]);
