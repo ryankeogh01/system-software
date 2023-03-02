@@ -2,9 +2,9 @@
 #include <unistd.h>
 #include <stdio.h>
 
-void exec1();
-void exec2();
-void exec3();
+void exec_ls();
+void exec_grep();
+void exec_output_to_stdout();
 
 int pid;
 int pipe1[2];
@@ -19,13 +19,13 @@ void main() {
     exit(1);
   }
 
-  // fork (ps aux)
+  // fork (ls -la)
   if ((pid = fork()) == -1) {
     perror("bad fork1");
     exit(1);
   } else if (pid == 0) {
-    // stdin --> ps --> pipe1
-    exec1();
+    // stdin --> ls --> pipe1
+    exec_ls();
   }
   // parent
 
@@ -41,7 +41,7 @@ void main() {
     exit(1);
   } else if (pid == 0) {
     // pipe1 --> grep --> pipe2
-    exec2();
+    exec_grep();
   }
   // parent
 
@@ -55,7 +55,7 @@ void main() {
     exit(1);
   } else if (pid == 0) {
     // pipe2 --> grep --> stdout
-    exec3();
+    exec_output_to_stdout();
   }
   // parent
 
@@ -63,13 +63,14 @@ void main() {
 }
 
 
-void exec1() {
+void exec_ls() {
+    // stdin --> ls --> pipe1
   // input from stdin (already done)
   // output to pipe1
-  dup2(pipe1[1], STDOUT_FILENO);
+  dup2(pipe1[STDOUT_FILENO], STDOUT_FILENO);
   // close fds
-  close(pipe1[0]);
-  close(pipe1[1]);
+  close(pipe1[STDIN_FILENO]);
+  close(pipe1[STDOUT_FILENO]);
   // exec
   execlp("ls", "ls", "-al", NULL);
   // exec didn't work, exit
@@ -77,16 +78,17 @@ void exec1() {
   exit(1);
 }
 
-void exec2() {
+void exec_grep() {
+    // pipe1 --> grep --> pipe2
   // input from pipe1
-  dup2(pipe1[0], STDIN_FILENO);
+  dup2(pipe1[STDIN_FILENO], STDIN_FILENO);
   // output to pipe2
-  dup2(pipe2[1], STDOUT_FILENO);
+  dup2(pipe2[STDOUT_FILENO], STDOUT_FILENO);
   // close fds
-  close(pipe1[0]);
-  close(pipe1[1]);
-  close(pipe2[0]);
-  close(pipe2[1]);
+  close(pipe1[STDIN_FILENO]);
+  close(pipe1[STDOUT_FILENO]);
+  close(pipe2[STDIN_FILENO]);
+  close(pipe2[STDOUT_FILENO]);
   // exec
   execlp("awk", "awk", "{ print $3 }", NULL);
   // exec didn't work, exit
@@ -94,13 +96,14 @@ void exec2() {
   exit(1);
 }
 
-void exec3() {
+void exec_output_to_stdout() {
   // input from pipe2
-  dup2(pipe2[0], STDIN_FILENO);
+  // pipe2 --> grep --> stdout
+  dup2(pipe2[STDIN_FILENO], STDIN_FILENO);
   // output to stdout (already done)
   // close fds
-  close(pipe2[0]);
-  close(pipe2[1]);
+  close(pipe2[STDIN_FILENO]);
+  close(pipe2[STDOUT_FILENO]);
   // exec
   execlp("sort", "sort", "-u", NULL);
   // exec didn't work, exit
