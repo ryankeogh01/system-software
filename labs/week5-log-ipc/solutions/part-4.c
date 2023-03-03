@@ -11,7 +11,7 @@ int pipe1[2];
 int pipe2[2];
 
 void main() {
-  // ps aux | awk { print $1 } | sort -u	
+  // ls -la | awk { print $3 } | sort -u	
 
   // create pipe1
   if (pipe(pipe1) == -1) {
