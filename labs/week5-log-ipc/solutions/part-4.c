@@ -4,7 +4,7 @@
 
 void exec_ls();
 void exec_grep();
-void exec_output_to_stdout();
+void exec_grep_route_to_stdout();
 
 int pid;
 int pipe1[2];
@@ -41,7 +41,7 @@ void main() {
     exit(1);
   } else if (pid == 0) {
     // pipe1 --> grep --> pipe2
-    exec_grep();
+    exec_awk();
   }
   // parent
 
@@ -55,7 +55,7 @@ void main() {
     exit(1);
   } else if (pid == 0) {
     // pipe2 --> grep --> stdout
-    exec_output_to_stdout();
+    exec_grep_route_to_stdout();
   }
   // parent
 
@@ -96,7 +96,7 @@ void exec_awk() {
   exit(1);
 }
 
-void exec_output_to_stdout() {
+void exec_grep_route_to_stdout() {
   // input from pipe2
   // pipe2 --> grep --> stdout
   dup2(pipe2[STDIN_FILENO], STDIN_FILENO);
