@@ -78,8 +78,8 @@ void exec_ls() {
   exit(1);
 }
 
-void exec_grep() {
-    // pipe1 --> grep --> pipe2
+void exec_awk() {
+    // pipe1 --> awk --> pipe2
   // input from pipe1
   dup2(pipe1[STDIN_FILENO], STDIN_FILENO);
   // output to pipe2
