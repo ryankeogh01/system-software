@@ -6,7 +6,7 @@ void *print_message_function( void *ptr );
 
 main()
 {
-     pthread_t thread1, thread2, thread3, thread4;
+     pthread_t thread1, thread2, thread3;
      const char *message1 = "\nHello from Thread 1\nGoodbye From Thread 1";
      const char *message2 = "\nHello From Thread 2\nGoodbye From Thread 2";
      const char *message3 = "\nHello From Thread 3\nGoodbye From Thread 3";
