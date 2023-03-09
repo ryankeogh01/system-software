@@ -13,6 +13,7 @@ main()
 
      int  iret1, iret2, iret3;
 
+     // create the threads
      iret1 = pthread_create( &thread1, NULL, print_message_function, (void*) message1);
      if(iret1)
      {
@@ -36,6 +37,7 @@ main()
      }
 
 
+    // wait for threads
      pthread_join( thread1, NULL); 
      pthread_join( thread2, NULL); 
      pthread_join( thread3, NULL);
@@ -48,5 +50,6 @@ void *print_message_function( void *ptr )
      char *message;
      message = (char *) ptr;
      printf("%s \n", message);
+     // kill the thread
      pthread_exit(NULL);
 }
