@@ -26,15 +26,24 @@
 #include "daemon_task.h"
 #include <signal.h>
 #include "update_timer.c"
-#include "lock_directories.c"
+//#include "lock_directories.c"
 #include "collect_reports.c"
 #include "generate_reports.c"
-#include "sig_handler.c"
+//#include "sig_handler.c"
 #include "backup_dashboard.c"
-#include "unlock_directories.c"
+//#include "unlock_directories.c"
 #include "check_file_uploads.c"
 
 
+
+
+//void sig_handler(int sigNum);
+// void lock_directories();
+// void unlock_directories();
+
+    const char *maindir = "/var/www/html/upload/";
+    const char *backup = "/var/www/html/backup/";
+    const char *report = "/var/www/html/report/";
 
 
 int main()
@@ -43,13 +52,11 @@ int main()
     struct tm backup_time;
     time(&now);  /* get current time; same as: now = time(NULL)  */
     backup_time = *localtime(&now);
-    backup_time.tm_hour = 1; 
-    backup_time.tm_min = 0; 
+    backup_time.tm_hour = 18; 
+    backup_time.tm_min = 27; 
     backup_time.tm_sec = 0;
 
-    char maindir = "/var/www/html/upload/";
-    char *backup = "/var/www/c19444404/backup/";
-    char *internal = "/var/www/c19444404/internal/";
+
 
     // Implementation for Singleton Pattern if desired (Only one instance running)
 
@@ -60,11 +67,13 @@ int main()
         // if PID > 0 :: this is the parent
         // this process performs printf and finishes
         //sleep(10);  // uncomment to wait 10 seconds before process ends
-        printf("Parent \n");
+        printf("Parent process\n");
+        syslog("syslog");
+
         exit(EXIT_SUCCESS);
     } else if (pid == 0) {
        // Step 1: Create the orphan process
-       printf("Child \n");
+       printf("Child process\n");
        
        // Step 2: Elevate the orphan process to session leader, to loose controlling TTY
        // This command runs the process in a new session
@@ -94,27 +103,12 @@ int main()
 
           // Signal Handler goes here
 
-          if(signal(SIGINT, sig_handler)== SIG_ERR) {
-            openlog("Daemon", LOG_PID | LOG_CONS, LOG_USER);
-            syslog(LOG_INFO, "SIGINT error");
-            closelog();
-          }
 
           // Log file goes here
           // TODO create your logging functionality here to a file
 
-         //  if(runtrack() == 0){
-         //    openlog("Tracking files", LOG_PID|LOG_CONS, LOG_USER);
-         //       syslog(LOG_INFO, "FILES BEING TRACKED");
-         //  }
 
-         //  int pid2 = fork();
 
-         //  if(pid2 == 0){
-         //    while(1){
-         //       int rec = server();
-         //    }
-         //  }
 
 
 
@@ -123,18 +117,20 @@ int main()
           // When the parent finishes after 10 seconds, 
           // the getppid() will return 1 as the parent (init process)
 
-          //trans
+
+         // signal(SIGINT, sig_handler);
+         // signal(SIGUSR1, sig_handler);
 
 
           
 	  struct tm check_uploads_time;
 	  time(&now);  /* get current time; same as: now = time(NULL)  */
 	  check_uploads_time = *localtime(&now);
-	  check_uploads_time.tm_hour = 23; 
-	  check_uploads_time.tm_min = 30; 
+	  check_uploads_time.tm_hour = 18; 
+	  check_uploads_time.tm_min = 25; 
 	  check_uploads_time.tm_sec = 0;
 	
-  	  while(1) {
+  	  while(1) { 
 	  	sleep(1);
 
 		if(signal(SIGINT, sig_handler) == SIG_ERR) {
@@ -174,4 +170,71 @@ int main()
 	closelog();
        return 0;
     }
+}
+
+
+
+
+
+void sig_handler(int sigNum)
+{
+	if (sigNum == SIGINT) {
+      printf("sigNUm = SIGINT ");
+		syslog(LOG_INFO, "RECEIVED SIGNAL INTERRUPT, INITIATING BACKUP AND TRANSFER");
+		lock_directories();
+		collect_reports();
+		backup_dashboard();
+		sleep(30);
+		unlock_directories();	
+	} 
+   else if (sigNum == SIGUSR1) {
+      printf("sigNUm = SIGUSR1 ");
+
+      lock_directories();
+		collect_reports();
+		backup_dashboard();
+		sleep(30);
+		unlock_directories();
+
+   }
+
+}
+
+         
+void unlock_directories() {
+    printf("unlock directory functionality should go here. fork/chmod will be used here to change permissions");
+
+    char mode[100] = "0777";
+    int i = strtol(mode,0,8);
+
+    if(chmod(maindir, i) == 0){
+        openlog("Daemon unlock", LOG_PID | LOG_CONS, LOG_USER);
+        syslog(LOG_INFO, "dir unlock success");
+        closelog();
+    }
+    else {
+        openlog("Daemon unlock", LOG_PID | LOG_CONS, LOG_USER);
+        syslog(LOG_INFO, "dir unlock error");
+        closelog();
+    }
+}
+
+void lock_directories() {
+    printf("lock directory functionality should go here. fork/chmod will be used here to change permissions");
+
+    char mode[100] = "0555";
+    int i = strtol(mode, 0, 8);
+
+    if(chmod(maindir, i ) == 0){
+        openlog("Daemon upload lock", LOG_PID | LOG_CONS, LOG_USER);
+        syslog(LOG_INFO, "Directory now locked");
+        closelog();
+
+    } 
+    else {
+        openlog("lock err", LOG_PID | LOG_CONS, LOG_USER);
+        syslog(LOG_INFO, "lock err");
+        closelog();
+    }
+
 }
